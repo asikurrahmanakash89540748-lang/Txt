@@ -1,0 +1,255 @@
+javascript:(()=>{
+const ID='hack5step-root';
+document.getElementById(ID)?.remove();
+
+const root=document.createElement('div');
+root.id=ID;
+document.body.appendChild(root);
+
+const css=`
+#${ID} *{box-sizing:border-box}
+#${ID} .float{
+position:fixed;z-index:2147483647;top:40%;left:15px;
+width:78px;height:78px;border-radius:50%;
+background:linear-gradient(145deg,#111c48,#050817);
+border:2px solid #00eaff;color:#00eaff;
+box-shadow:0 0 15px #00bfff,0 0 35px #644cff;
+display:flex;align-items:center;justify-content:center;
+flex-direction:column;font-family:Arial;cursor:grab;
+touch-action:none;user-select:none
+}
+#${ID} .float b{font-size:17px;letter-spacing:2px}
+#${ID} .float small{font-size:10px;color:#bbaaff}
+#${ID} .close{
+position:absolute;right:-7px;top:-7px;
+width:23px;height:23px;border:0;border-radius:50%;
+background:#ff386c;color:white;font-weight:bold
+}
+#${ID} .overlay{
+position:fixed;inset:0;z-index:2147483646;
+background:radial-gradient(ellipse at top,#142b60,#050713 65%,#010207);
+display:flex;align-items:center;justify-content:center;
+font-family:Arial,sans-serif;color:white;padding:15px;
+}
+#${ID} .card{
+width:100%;max-width:360px;padding:25px 20px;
+border:1px solid #624cff;border-radius:23px;
+background:linear-gradient(145deg,rgba(15,28,65,.97),rgba(3,8,22,.98));
+box-shadow:0 0 25px #245bff66,0 0 60px #8c36ff22;
+text-align:center;position:relative;overflow:hidden;
+}
+#${ID} .card:before{
+content:'';position:absolute;inset:0;pointer-events:none;
+background:linear-gradient(110deg,transparent,#ffffff09,transparent);
+}
+#${ID} .top{
+font-size:10px;letter-spacing:4px;color:#9baeff;
+margin-bottom:12px
+}
+#${ID} .title{
+font-size:27px;font-weight:900;letter-spacing:3px;
+background:linear-gradient(90deg,#00efff,#9b7aff,#ff64d5);
+-webkit-background-clip:text;color:transparent;
+}
+#${ID} .line{
+height:1px;background:linear-gradient(90deg,transparent,#00eaff,transparent);
+margin:17px 0
+}
+#${ID} .status{
+font-size:11px;letter-spacing:2px;color:#8ba9dc;
+margin:12px 0
+}
+#${ID} .circle{
+width:145px;height:145px;border-radius:50%;
+margin:20px auto;display:flex;align-items:center;
+justify-content:center;flex-direction:column;
+border:2px solid #00dfff;
+box-shadow:0 0 15px #00dfff,inset 0 0 25px #315dff55;
+position:relative;
+}
+#${ID} .circle:before{
+content:'';position:absolute;inset:8px;border-radius:50%;
+border:1px dashed #8b75ff;
+animation:spin 8s linear infinite;
+}
+#${ID} .number{font-size:55px;font-weight:bold;color:#fff;
+text-shadow:0 0 20px #00dfff}
+#${ID} .unit{font-size:9px;letter-spacing:3px;color:#a4cfff}
+#${ID} .track{
+height:7px;background:#1a2a4a;border-radius:20px;
+overflow:hidden;margin:18px 0 8px;
+}
+#${ID} .progress{
+height:100%;width:0%;
+background:linear-gradient(90deg,#00eaff,#7861ff,#ff55cf);
+box-shadow:0 0 15px #00eaff;
+border-radius:20px;
+}
+#${ID} .percent{font-size:11px;color:#a6b9e8}
+#${ID} .btns{display:flex;gap:10px;margin-top:20px}
+#${ID} button.action{
+flex:1;padding:13px 8px;border:1px solid #477bff;
+border-radius:10px;background:#102654;color:#fff;
+font-weight:bold;letter-spacing:1px;cursor:pointer
+}
+#${ID} button.primary{
+background:linear-gradient(100deg,#006fff,#753eff);
+border:0;box-shadow:0 0 15px #476aff66
+}
+#${ID} .result{
+font-size:43px;font-weight:900;margin:22px 0;
+text-shadow:0 0 20px currentColor
+}
+#${ID} .foot{
+font-size:9px;color:#637eae;letter-spacing:2px;margin-top:20px
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{
+50%{box-shadow:0 0 35px #00eaff,inset 0 0 30px #315dff}
+}
+@media(max-height:550px){
+#${ID} .card{padding:13px}
+#${ID} .circle{width:105px;height:105px;margin:10px auto}
+#${ID} .number{font-size:38px}
+}
+`;
+
+const style=document.createElement('style');
+style.textContent=css;
+root.appendChild(style);
+
+const btn=document.createElement('div');
+btn.className='float';
+btn.innerHTML='<b>HACK</b><small>PREMIUM 2.0</small><button class="close">×</button>';
+root.appendChild(btn);
+
+let overlay=null,interval=null,raf=null,busy=false;
+let down=false,moved=false,sx=0,sy=0,bx=0,by=0;
+
+function stop(){
+clearInterval(interval);
+cancelAnimationFrame(raf);
+interval=null;raf=null;busy=false;
+overlay?.remove();overlay=null;
+}
+
+function remove(){
+stop();
+root.remove();
+}
+
+btn.querySelector('.close').onclick=e=>{
+e.stopPropagation();remove();
+};
+
+btn.addEventListener('pointerdown',e=>{
+if(e.target.closest('.close'))return;
+down=true;moved=false;
+sx=e.clientX;sy=e.clientY;
+bx=btn.offsetLeft;by=btn.offsetTop;
+btn.setPointerCapture(e.pointerId);
+});
+
+btn.addEventListener('pointermove',e=>{
+if(!down)return;
+if(Math.hypot(e.clientX-sx,e.clientY-sy)>5)moved=true;
+if(moved){
+btn.style.left=Math.max(0,Math.min(innerWidth-78,bx+e.clientX-sx))+'px';
+btn.style.top=Math.max(0,Math.min(innerHeight-78,by+e.clientY-sy))+'px';
+}
+});
+
+btn.addEventListener('pointerup',()=>{
+if(!down)return;
+down=false;
+if(!moved)openPanel();
+});
+
+function openPanel(){
+if(overlay)return;
+
+overlay=document.createElement('div');
+overlay.className='overlay';
+overlay.innerHTML=`
+<div class="card">
+<div class="top">ADVANCED INTERFACE</div>
+<div class="title">HACK 5STEP</div>
+<div class="line"></div>
+<div class="status" id="status">SYSTEM READY</div>
+<div class="circle">
+<div class="number" id="number">05</div>
+<div class="unit">COUNTDOWN</div>
+</div>
+<div class="track"><div class="progress" id="progress"></div></div>
+<div class="percent" id="percent">0% COMPLETE</div>
+<div class="btns">
+<button class="action primary" id="start">START SCAN</button>
+<button class="action" id="close">CLOSE</button>
+</div>
+<div class="foot">NEON INTERFACE • DEMO VERSION</div>
+</div>`;
+
+root.appendChild(overlay);
+overlay.querySelector('#close').onclick=stop;
+overlay.querySelector('#start').onclick=startScan;
+}
+
+function startScan(){
+if(busy)return;
+busy=true;
+
+const number=overlay.querySelector('#number');
+const progress=overlay.querySelector('#progress');
+const percent=overlay.querySelector('#percent');
+const status=overlay.querySelector('#status');
+const start=overlay.querySelector('#start');
+
+overlay.querySelector('.result')?.remove();
+start.disabled=true;
+start.textContent='SCANNING...';
+number.style.color='#fff';
+number.style.animation='';
+overlay.querySelector('.circle').style.borderColor='#00dfff';
+overlay.querySelector('.circle').style.boxShadow='0 0 15px #00dfff,inset 0 0 25px #315dff55';
+progress.style.width='0%';
+progress.style.background='linear-gradient(90deg,#00eaff,#7861ff,#ff55cf)';
+number.textContent='05';
+percent.textContent='0% COMPLETE';
+status.textContent='MULTI LIGHT SCAN ACTIVE';
+
+let count=5;
+const begin=Date.now();
+
+interval=setInterval(()=>{
+count--;
+number.textContent=String(Math.max(0,count)).padStart(2,'0');
+},1000);
+
+function animate(){
+if(!overlay)return;
+const elapsed=Date.now()-begin;
+const p=Math.min(100,elapsed/5000*100);
+progress.style.width=p+'%';
+percent.textContent=Math.floor(p)+'% COMPLETE';
+if(p<100){raf=requestAnimationFrame(animate);}
+else{
+clearInterval(interval);interval=null;
+const up=Math.random()<.5;
+status.textContent='DEMO SIGNAL GENERATED';
+number.textContent='✓';
+number.style.color=up?'#00ffbd':'#ff5786';
+number.style.animation='pulse 1s infinite';
+overlay.querySelector('.circle').style.borderColor=up?'#00ffbd':'#ff5786';
+overlay.querySelector('.circle').style.boxShadow='0 0 25px '+(up?'#00ffbd':'#ff5786');
+progress.style.background=up?'linear-gradient(90deg,#00ffbd,#00dfff)':'linear-gradient(90deg,#ff5786,#9c47ff)';
+overlay.querySelector('.card').insertAdjacentHTML('beforeend',
+`<div class="result" style="color:${up?'#00ffbd':'#ff5786'}">${up?'UP ▲':'DOWN ▼'}</div>
+<div class="status">RANDOM DEMO RESULT</div>`);
+start.disabled=false;
+start.textContent='SCAN AGAIN';
+busy=false;
+}
+}
+raf=requestAnimationFrame(animate);
+}
+})();
